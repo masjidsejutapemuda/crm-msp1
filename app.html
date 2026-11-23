@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>CRM Masjid Sejuta Pemuda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div id="boot" class="loading" style="padding-top:30vh"><span class="spin"></span></div>
+
+<div class="shell hidden" id="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head" id="sb-logo"></div>
+    <div class="org-switch">
+      <div class="org-ico" id="org-ico"></div>
+      <div class="org-txt"><b>Masjid Sejuta Pemuda</b><small>CRM Donatur &amp; Syiar</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sb-user">
+      <div class="avatar" id="u-av"></div>
+      <div class="who"><b id="u-name"></b><small id="u-role"></small></div>
+      <button class="menu-btn" id="logout" title="Keluar" aria-label="Keluar"></button>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="toggle" aria-label="Menu"></button>
+      <div class="title" id="top-title"></div>
+      <div class="sp"></div>
+      <div id="top-acts"></div>
+    </header>
+    <main class="content" id="view"></main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/pages/dashboard.js"></script>
+<script src="assets/js/pages/donatur.js"></script>
+<script src="assets/js/pages/statistik.js"></script>
+<script src="assets/js/pages/budget.js"></script>
+<script src="assets/js/pages/whatsapp.js"></script>
+<script src="assets/js/pages/sinkronisasi.js"></script>
+<script src="assets/js/pages/pengguna.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

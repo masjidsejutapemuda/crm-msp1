@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Login — CRM Masjid Sejuta Pemuda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-box">
+    <div id="logo"></div>
+    <div class="auth-card">
+      <div id="msg"></div>
+
+      <!-- LOGIN -->
+      <form id="f-login" novalidate>
+        <h1>Login</h1>
+        <p class="sub">Masukkan email dan password untuk login ke akun Anda</p>
+        <div class="field"><label for="l-email">Email</label>
+          <input class="input" id="l-email" type="email" autocomplete="email" required placeholder="nama@email.com"></div>
+        <div class="field"><label for="l-pass">Password <a href="#" id="to-forgot" style="font-weight:500">Lupa Password?</a></label>
+          <div class="pw"><input class="input" id="l-pass" type="password" autocomplete="current-password" required>
+            <button type="button" id="eye" aria-label="Tampilkan password"></button></div></div>
+        <button class="btn btn-primary btn-block" id="b-login" style="margin-top:12px">Login</button>
+        <p class="auth-foot">Belum punya akun? <a href="#" id="to-reg">Daftar</a></p>
+      </form>
+
+      <!-- DAFTAR -->
+      <form id="f-reg" class="hidden" novalidate>
+        <h1>Daftar</h1>
+        <p class="sub">Akun baru perlu disetujui admin sebelum dapat digunakan</p>
+        <div class="field"><label for="r-name">Nama lengkap</label><input class="input" id="r-name" autocomplete="name" required></div>
+        <div class="field"><label for="r-email">Email</label><input class="input" id="r-email" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="r-pass">Password (min. 8 karakter)</label><input class="input" id="r-pass" type="password" autocomplete="new-password" minlength="8" required></div>
+        <button class="btn btn-primary btn-block" id="b-reg">Buat Akun</button>
+        <p class="auth-foot">Sudah punya akun? <a href="#" data-back>Login</a></p>
+      </form>
+
+      <!-- LUPA PASSWORD -->
+      <form id="f-forgot" class="hidden" novalidate>
+        <h1>Lupa Password</h1>
+        <p class="sub">Kami akan mengirim tautan untuk mengatur ulang password</p>
+        <div class="field"><label for="f-email">Email</label><input class="input" id="f-email" type="email" autocomplete="email" required></div>
+        <button class="btn btn-primary btn-block" id="b-forgot">Kirim Tautan</button>
+        <p class="auth-foot"><a href="#" data-back>Kembali ke Login</a></p>
+      </form>
+
+      <!-- ATUR PASSWORD BARU (dari tautan email) -->
+      <form id="f-new" class="hidden" novalidate>
+        <h1>Password Baru</h1>
+        <p class="sub">Masukkan password baru Anda</p>
+        <div class="field"><label for="n-pass">Password baru (min. 8 karakter)</label><input class="input" id="n-pass" type="password" autocomplete="new-password" minlength="8" required></div>
+        <button class="btn btn-primary btn-block" id="b-new">Simpan Password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const forms = ["f-login", "f-reg", "f-forgot", "f-new"];
+  const show = (id) => { forms.forEach((f) => $(f).classList.toggle("hidden", f !== id)); $("msg").innerHTML = ""; };
+  const note = (text, ok) => { $("msg").innerHTML = `<div class="alert ${ok ? "alert-ok" : "alert-err"}">${U.esc(text)}</div>`; };
+  const busy = (btn, on, label) => { btn.disabled = on; btn.innerHTML = on ? '<span class="spin"></span>' : label; };
+
+  $("logo").innerHTML = `<div style="display:flex;justify-content:center">${U.logo(38)}</div>`;
+  $("eye").innerHTML = I.eye;
+  $("eye").onclick = () => {
+    const p = $("l-pass"), s = p.type === "password";
+    p.type = s ? "text" : "password";
+    $("eye").innerHTML = s ? I.eyeoff : I.eye;
+  };
+  $("to-reg").onclick = (e) => { e.preventDefault(); show("f-reg"); };
+  $("to-forgot").onclick = (e) => { e.preventDefault(); show("f-forgot"); };
+  document.querySelectorAll("[data-back]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); show("f-login"); }));
+
+  // Sudah login? langsung masuk. Tautan reset password? tampilkan form password baru.
+  sb.auth.onAuthStateChange((ev) => { if (ev === "PASSWORD_RECOVERY") show("f-new"); });
+  (async () => {
+    const q = new URLSearchParams(location.search);
+    if (q.get("pending")) note("Akun Anda belum aktif. Hubungi admin untuk persetujuan.", false);
+    if (location.hash.includes("type=recovery")) return;
+    const s = await U.session();
+    if (s) {
+      const p = await U.loadProfile(s.user.id);
+      if (p?.is_active) location.replace("app.html");
+    }
+  })();
+
+  $("f-login").onsubmit = async (e) => {
+    e.preventDefault();
+    const email = $("l-email").value.trim(), password = $("l-pass").value;
+    if (!email || !password) return note("Email dan password wajib diisi.");
+    busy($("b-login"), true);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { busy($("b-login"), false, "Login"); return note("Email atau password salah."); }
+    const p = await U.loadProfile(data.user.id);
+    if (!p?.is_active) {
+      await sb.auth.signOut();
+      busy($("b-login"), false, "Login");
+      return note("Akun Anda belum aktif. Hubungi admin untuk persetujuan.");
+    }
+    location.replace("app.html");
+  };
+
+  $("f-reg").onsubmit = async (e) => {
+    e.preventDefault();
+    const full_name = $("r-name").value.trim(), email = $("r-email").value.trim(), password = $("r-pass").value;
+    if (!full_name || !email) return note("Nama dan email wajib diisi.");
+    if (password.length < 8) return note("Password minimal 8 karakter.");
+    busy($("b-reg"), true);
+    const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name }, emailRedirectTo: location.origin + location.pathname } });
+    busy($("b-reg"), false, "Buat Akun");
+    if (error) return note(error.message);
+    show("f-login");
+    note("Akun dibuat. Cek email untuk konfirmasi (jika diminta), lalu tunggu persetujuan admin.", true);
+  };
+
+  $("f-forgot").onsubmit = async (e) => {
+    e.preventDefault();
+    const email = $("f-email").value.trim();
+    if (!email) return note("Email wajib diisi.");
+    busy($("b-forgot"), true);
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    busy($("b-forgot"), false, "Kirim Tautan");
+    show("f-login");
+    note("Jika email terdaftar, tautan pengaturan ulang telah dikirim.", true); // pesan sama agar email tidak bisa ditebak
+  };
+
+  $("f-new").onsubmit = async (e) => {
+    e.preventDefault();
+    const password = $("n-pass").value;
+    if (password.length < 8) return note("Password minimal 8 karakter.");
+    busy($("b-new"), true);
+    const { error } = await sb.auth.updateUser({ password });
+    busy($("b-new"), false, "Simpan Password");
+    if (error) return note(error.message);
+    await sb.auth.signOut();
+    history.replaceState(null, "", location.pathname);
+    show("f-login");
+    note("Password diperbarui. Silakan login.", true);
+  };
+})();
+</script>
+</body>
+</html>
