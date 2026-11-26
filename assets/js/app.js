@@ -30,8 +30,7 @@ window.PAGES = window.PAGES || {};
     { id: "pengguna", label: "Pengguna & Akses", icon: I.shield, roles: ["admin"] },
   ].filter((m) => m.roles.includes(me.role));
 
-  $("sb-logo").innerHTML = U.logo(34);
-  $("org-ico").innerHTML = I.mosque;
+  $("sb-logo").innerHTML = `<a class="logo-link" href="#/dashboard">${U.logo()}</a>`;
   $("toggle").innerHTML = I.menu;
   $("logout").innerHTML = I.out;
   $("u-av").textContent = U.initials(me.full_name);

@@ -101,8 +101,8 @@ create table if not exists public.categories (
   color text not null default '#0f766e'
 );
 insert into public.categories (name, color) values
-  ('Zakat', '#0f766e'), ('Infaq', '#b45309'), ('Sedekah', '#1d4ed8'),
-  ('Wakaf', '#7c3aed'), ('Qurban', '#be123c'), ('Lainnya', '#64748b')
+  ('Zakat', '#133C4E'), ('Infaq', '#8CBA40'), ('Sedekah', '#2F86A6'),
+  ('Wakaf', '#6C7A89'), ('Qurban', '#D08A2E'), ('Lainnya', '#94A3B8')
 on conflict (name) do nothing;
 
 create table if not exists public.programs (

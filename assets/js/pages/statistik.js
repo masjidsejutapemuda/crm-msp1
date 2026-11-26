@@ -41,7 +41,7 @@ PAGES.statistik = {
       const o = ov.data;
 
       view.querySelector("#cats").innerHTML = cat.data.map((c) => `
-        <div class="cat-tile" style="--c:${/^#[0-9a-fA-F]{6}$/.test(c.color) ? c.color : "#0b7a5b"}"><div class="n">${U.esc(c.category)}</div>
+        <div class="cat-tile" style="--c:${/^#[0-9a-fA-F]{6}$/.test(c.color) ? c.color : "#133C4E"}"><div class="n">${U.esc(c.category)}</div>
         <div class="v num">${U.rp(c.amount)}</div><div class="s">${U.num(c.trx)} Transaksi</div></div>`).join("");
 
       view.querySelector("#k1").innerHTML = kpi("Donatur", U.num(o.donors), "person") + kpi("Raihan", U.rp(o.amount), "wallet") + kpi("Total Transaksi", U.num(o.count), "card");

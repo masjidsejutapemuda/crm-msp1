@@ -4,16 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#133C4E">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
   <title>Login — CRM Masjid Sejuta Pemuda</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 <div class="auth-wrap">
   <div class="auth-box">
-    <div id="logo"></div>
+    <div id="logo" class="auth-logo"></div>
     <div class="auth-card">
       <div id="msg"></div>
 
@@ -72,7 +74,7 @@
   const note = (text, ok) => { $("msg").innerHTML = `<div class="alert ${ok ? "alert-ok" : "alert-err"}">${U.esc(text)}</div>`; };
   const busy = (btn, on, label) => { btn.disabled = on; btn.innerHTML = on ? '<span class="spin"></span>' : label; };
 
-  $("logo").innerHTML = `<div style="display:flex;justify-content:center">${U.logo(38)}</div>`;
+  $("logo").innerHTML = U.logo();
   $("eye").innerHTML = I.eye;
   $("eye").onclick = () => {
     const p = $("l-pass"), s = p.type === "password";

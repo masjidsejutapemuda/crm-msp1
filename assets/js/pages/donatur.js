@@ -183,8 +183,8 @@ PAGES.donatur = {
       const m = U.modal({
         title: d.name, wide: true,
         body: `<div class="grid g3 mb"><div class="cat-tile"><div class="n">Total donasi</div><div class="v num">${U.rp(d.total_amount)}</div><div class="s">${U.num(d.total_count)} transaksi</div></div>
-          <div class="cat-tile" style="--c:var(--gold)"><div class="n">Pertama</div><div class="v" style="font-size:18px">${U.date(d.first_donation_at)}</div></div>
-          <div class="cat-tile" style="--c:var(--gold)"><div class="n">Terakhir</div><div class="v" style="font-size:18px">${U.date(d.last_donation_at)}</div></div></div>
+          <div class="cat-tile" style="--c:var(--accent)"><div class="n">Pertama</div><div class="v" style="font-size:18px">${U.date(d.first_donation_at)}</div></div>
+          <div class="cat-tile" style="--c:var(--accent)"><div class="n">Terakhir</div><div class="v" style="font-size:18px">${U.date(d.last_donation_at)}</div></div></div>
           <p style="color:var(--ink-2);margin-bottom:12px">${d.phone ? "+" + U.esc(d.phone) : "Tanpa nomor"} · ${U.esc(d.email || "tanpa email")} ${d.city ? "· " + U.esc(d.city) : ""}</p>
           ${d.notes ? `<p class="alert alert-ok">${U.esc(d.notes)}</p>` : ""}
           <div class="lbl"><span>Riwayat donasi</span></div><div id="hist" class="card" style="box-shadow:none"><div class="loading"><span class="spin"></span></div></div>`,

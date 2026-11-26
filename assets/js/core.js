@@ -126,12 +126,8 @@ window.PAGES = window.PAGES || {}; // harus ada sebelum skrip halaman dimuat
     check: ic('<path d="M20 6L9 17l-5-5"/>'),
   });
 
-  U.logo = (size = 34) => `<span class="logo"><svg viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true">
-    <rect width="48" height="48" rx="12" fill="#0b7a5b"/>
-    <path d="M24 9c-1.800 2.300-1.300 4 0 5.200" stroke="#f0c75e" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <path d="M12 38V26a12 12 0 0124 0v12z" fill="#fff"/>
-    <path d="M20 38v-6a4 4 0 018 0v6z" fill="#0b7a5b"/>
-  </svg><span>${U.esc(window.APP_CONFIG.ORG_NAME)}</span></span>`;
+  // Logo SMART — Masjid Sejuta Pemuda (gambar PNG transparan)
+  U.logo = () => `<img class="logo-img" src="assets/img/logo.png" width="800" height="311" alt="SMART — Sedekah Iqtiqomah Setiap Hari Jum'at, Masjid Sejuta Pemuda">`;
 
   // ---------- Sesi & profil ----------
   U.session = async () => (await sb.auth.getSession()).data.session;
@@ -178,18 +174,18 @@ window.PAGES = window.PAGES || {}; // harus ada sebelum skrip halaman dimuat
     const area = `${d} L${x(points.length - 1)},${H - B} L${x(0)},${H - B} Z`;
     const grid = [0, 0.25, 0.5, 0.75, 1].map((g) => {
       const gy = y(top * g);
-      return `<line x1="${L}" x2="${W - R}" y1="${gy}" y2="${gy}" stroke="#e3e9e6" stroke-dasharray="${g === 0 ? "0" : "3 4"}"/>
-        <text x="${L - 8}" y="${gy + 4}" text-anchor="end" font-size="11" fill="#7b8a84">${valueFmt(top * g)}</text>`;
+      return `<line x1="${L}" x2="${W - R}" y1="${gy}" y2="${gy}" stroke="#e1e8ec" stroke-dasharray="${g === 0 ? "0" : "3 4"}"/>
+        <text x="${L - 8}" y="${gy + 4}" text-anchor="end" font-size="11" fill="#7b8d99">${valueFmt(top * g)}</text>`;
     }).join("");
     const step = Math.ceil(points.length / 14);
     const labels = points.map((p, i) => (i % step ? "" :
-      `<text x="${x(i)}" y="${H - B + 18}" font-size="11" fill="#7b8a84" text-anchor="end" transform="rotate(-35 ${x(i)} ${H - B + 18})">${U.esc(labelFmt(p))}</text>`)).join("");
+      `<text x="${x(i)}" y="${H - B + 18}" font-size="11" fill="#7b8d99" text-anchor="end" transform="rotate(-35 ${x(i)} ${H - B + 18})">${U.esc(labelFmt(p))}</text>`)).join("");
     const gid = "g" + Math.random().toString(36).slice(2, 7);
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Grafik">
-      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b7a5b" stop-opacity=".42"/><stop offset="1" stop-color="#0b7a5b" stop-opacity=".02"/></linearGradient></defs>
-      ${grid}<path d="${area}" fill="url(#${gid})"/><path d="${d}" fill="none" stroke="#0b7a5b" stroke-width="2.5" stroke-linejoin="round"/>
-      ${labels}<line class="cur" y1="${T}" y2="${H - B}" stroke="#0b7a5b" stroke-opacity=".35" style="display:none"/>
-      <circle class="dot" r="5" fill="#fff" stroke="#0b7a5b" stroke-width="2.500" style="display:none"/></svg><div class="tip hidden"></div>`;
+      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8CBA40" stop-opacity=".55"/><stop offset="1" stop-color="#8CBA40" stop-opacity=".04"/></linearGradient></defs>
+      ${grid}<path d="${area}" fill="url(#${gid})"/><path d="${d}" fill="none" stroke="#133C4E" stroke-width="2.5" stroke-linejoin="round"/>
+      ${labels}<line class="cur" y1="${T}" y2="${H - B}" stroke="#133C4E" stroke-opacity=".35" style="display:none"/>
+      <circle class="dot" r="5" fill="#fff" stroke="#133C4E" stroke-width="2.500" style="display:none"/></svg><div class="tip hidden"></div>`;
     const svg = el.querySelector("svg"), tip = el.querySelector(".tip"), cur = svg.querySelector(".cur"), dot = svg.querySelector(".dot");
     svg.addEventListener("mousemove", (e) => {
       const r = svg.getBoundingClientRect();

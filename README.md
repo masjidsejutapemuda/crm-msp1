@@ -39,7 +39,7 @@ supabase link --project-ref <PROJECT_ID>
 supabase secrets set \
   SCALEV_WEBHOOK_SECRET=<rahasia-webhook> \
   SCALEV_API_KEY=<api-key-scalev> \
-  SCALEV_API_BASE=https://api.scalev.id/v2 \
+  SCALEV_API_BASE=https://api.scalev.com/v3 \
   WA_PHONE_NUMBER_ID=<id> WA_ACCESS_TOKEN=<token> \
   WA_VERIFY_TOKEN=<string-bebas> WA_APP_SECRET=<app-secret-meta> \
   ALLOWED_ORIGIN=https://<user>.github.io
@@ -52,11 +52,17 @@ supabase functions deploy wa-send
 Webhook publik (`--no-verify-jwt`) dilindungi tanda tangan HMAC, bukan login.
 
 ### 3. Scalev
-Scalev → Developer/Webhook: URL `https://<PROJECT_ID>.supabase.co/functions/v1/scalev-webhook`, event order dibuat/dibayar, isi secret sama dengan `SCALEV_WEBHOOK_SECRET`.
+Sesuai dokumentasi resmi Scalev (dev.scalev.com):
 
-> **Verifikasi payload (penting):** nama field & header tanda tangan Scalev saya petakan secara toleran (`supabase/functions/_shared/scalev.ts`), tetapi saya belum bisa menguji ke akun Scalev Anda. Kirim 1 order uji, lalu cek menu **Sinkronisasi → Riwayat**. Jika status *gagal*/field kosong, sesuaikan `mapOrder()` dan nama header di `SCALEV_SIGNATURE_HEADER` dengan dokumentasi Scalev.
+1. **API Key:** Scalev → Developers → API Keys → Create API Key. Beri izin (scope) **order:list**. Simpan sebagai secret `SCALEV_API_KEY` (dipakai tombol *Sinkron Sekarang*; API: `https://api.scalev.com/v3`).
+2. **Webhook:** Scalev → Developers → Webhooks → tambah webhook:
+   - URL: `https://<PROJECT_ID>.supabase.co/functions/v1/scalev-webhook`
+   - Event: `order.created`, `order.updated`, `order.payment_status_changed`, `payment.received`, `payment.failed`, `order.deleted`
+   - Salin **Signing Secret** yang diberikan Scalev → simpan sebagai secret `SCALEV_WEBHOOK_SECRET`.
+3. Tanda tangan webhook: header `X-Scalev-Hmac-Sha256` (HMAC-SHA256, Base64) diverifikasi otomatis.
+4. Jumlah donasi diambil dari `amounts.gross_revenue`; donatur dari `destination_address` (nama, telepon, email, kota). Kategori (Zakat/Infaq/Sedekah/Wakaf/Qurban) dideteksi dari **nama produk**.
 
-Kategori donasi (Zakat/Infaq/Sedekah/Wakaf/Qurban) dideteksi dari **nama produk** Scalev. Beri nama produk yang memuat kata tersebut.
+> Pemetaan webhook sudah dicocokkan dengan dokumentasi. Tombol *Sinkron Sekarang* memakai endpoint `GET /v3/orders` yang belum diuji dengan akun nyata: cek menu **Sinkronisasi → Riwayat** setelah percobaan pertama.
 
 ### 4. WhatsApp Cloud API
 1. developers.facebook.com → buat app Business → tambahkan produk WhatsApp → nomor & token permanen (System User).
