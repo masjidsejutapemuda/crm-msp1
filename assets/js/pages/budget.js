@@ -1,13 +1,8 @@
 PAGES.budget = {
   async render(view, ctx) {
-    const now = new Date();
-    let year = now.getFullYear();
-    const years = []; for (let y = now.getFullYear() + 1; y >= now.getFullYear() - 3; y--) years.push(y);
     const CHANNELS = ["Meta Ads", "TikTok Ads", "Google Ads", "Konten & Desain", "Influencer / KOL", "Event & Kajian", "Cetak & Spanduk", "Lainnya"];
 
-    ctx.setActions(`<select class="input" id="b-year" style="height:36px;width:auto">${years.map((y) => `<option ${y === year ? "selected" : ""}>${y}</option>`).join("")}</select>
-      <button class="btn btn-primary btn-sm" id="b-add" style="margin-left:8px">${I.plus} Budget</button>`);
-    ctx.topActs.querySelector("#b-year").onchange = (e) => { year = +e.target.value; load(); };
+    ctx.setActions(U.periodHTML({ futureYears: 1 }) + `<button class="btn btn-primary btn-sm" id="b-add" style="margin-left:8px">${I.plus} Budget</button>`);
     ctx.topActs.querySelector("#b-add").onclick = () => editBudget();
 
     view.innerHTML = `<div class="page-head"><div><h1 class="page-title">Budget Syiar</h1>
@@ -19,9 +14,12 @@ PAGES.budget = {
     const barCls = (p) => (p > 100 ? "over" : p >= 85 ? "warn" : "");
 
     async function load() {
+      const P = { ...U.period }, label = U.periodLabel(P), [from, to] = U.periodRange(P);
       const [b, don] = await Promise.all([
-        sb.from("budget_summary").select("*").eq("period_year", year).order("period_month", { nullsFirst: true }).order("created_at"),
-        sb.rpc("stats_overview", { p_from: U.range(year, null)[0], p_to: U.range(year, null)[1] }),
+        (() => { let q = sb.from("budget_summary").select("*").eq("period_year", P.year);
+          if (P.month != null) q = q.or(`period_month.eq.${P.month + 1},period_month.is.null`); // bulan terpilih + pos setahun penuh
+          return q.order("period_month", { nullsFirst: true }).order("created_at"); })(),
+        sb.rpc("stats_overview", { p_from: from, p_to: to }),
       ]);
       if (b.error) throw b.error;
       const rows = b.data || [];
@@ -29,7 +27,7 @@ PAGES.budget = {
       const raihan = Number(don.data?.amount || 0);
 
       $("#sum").innerHTML = kpi("Total Anggaran", U.rp(alloc), `${rows.length} pos budget`) + kpi("Terpakai", U.rp(spent), `${pct(spent, alloc)}% dari anggaran`) +
-        kpi("Sisa", U.rp(alloc - spent)) + kpi("Raihan ÷ Biaya Syiar", spent ? (raihan / spent).toFixed(1).replace(".", ",") + "×" : "—", `Raihan ${U.rpShort(raihan)} tahun ${year}`);
+        kpi("Sisa", U.rp(alloc - spent)) + kpi("Raihan ÷ Biaya Syiar", spent ? (raihan / spent).toFixed(1).replace(".", ",") + "×" : "—", `Raihan ${U.rpShort(raihan)} · ${label}`);
 
       $("#list").innerHTML = rows.length ? `<div class="grid g3">${rows.map((r) => {
         const p = pct(r.spent, r.allocated);
@@ -41,7 +39,7 @@ PAGES.budget = {
           <div class="bar ${barCls(p)}"><i style="width:${Math.min(p, 100)}%"></i></div>
           <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--ink-3)"><span>${p}% terpakai</span><span class="${r.remaining < 0 ? "" : ""}" style="${r.remaining < 0 ? "color:var(--danger);font-weight:700" : ""}">${r.remaining < 0 ? "Lebih " + U.rpShort(-r.remaining) : "Sisa " + U.rpShort(r.remaining)}</span></div>
           <div style="display:flex;gap:6px;margin-top:16px"><button class="btn btn-sm" data-exp="${r.id}" style="flex:1">Pengeluaran</button><button class="btn btn-sm" data-edit="${r.id}" aria-label="Ubah">${I.edit}</button></div></div>`;
-      }).join("")}</div>` : `<div class="card"><div class="empty"><b>Belum ada budget untuk ${year}</b>Klik “+ Budget” untuk membuat pos anggaran syiar pertama.</div></div>`;
+      }).join("")}</div>` : `<div class="card"><div class="empty"><b>Belum ada budget untuk ${label}</b>Klik “+ Budget” untuk membuat pos anggaran syiar pertama.</div></div>`;
 
       $("#list").querySelectorAll("[data-exp]").forEach((x) => (x.onclick = () => expenses(rows.find((r) => r.id === x.dataset.exp))));
       $("#list").querySelectorAll("[data-edit]").forEach((x) => (x.onclick = () => editBudget(rows.find((r) => r.id === x.dataset.edit))));
@@ -54,8 +52,8 @@ PAGES.budget = {
         body: `<div class="field"><label>Nama pos *</label><input class="input" id="b-title" placeholder="Iklan Ramadhan 1448H" value="${U.esc(b?.title || "")}"></div>
           <div class="row2"><div class="field"><label>Saluran</label><select class="input" id="b-ch">${CHANNELS.map((c) => `<option ${b?.channel === c ? "selected" : ""}>${c}</option>`).join("")}</select></div>
           <div class="field"><label>Anggaran (Rp) *</label><input class="input num" id="b-al" inputmode="numeric" value="${b ? Number(b.allocated) : ""}"></div></div>
-          <div class="row2"><div class="field"><label>Tahun</label><input class="input" id="b-y" type="number" value="${b?.period_year || year}"></div>
-          <div class="field"><label>Bulan (opsional)</label><select class="input" id="b-m"><option value="">Setahun penuh</option>${U.monthName.map((m, i) => `<option value="${i + 1}" ${b?.period_month === i + 1 ? "selected" : ""}>${m}</option>`).join("")}</select></div></div>
+          <div class="row2"><div class="field"><label>Tahun</label><input class="input" id="b-y" type="number" value="${b?.period_year || U.period.year}"></div>
+          <div class="field"><label>Bulan (opsional)</label><select class="input" id="b-m"><option value="">Setahun penuh</option>${U.monthName.map((m, i) => `<option value="${i + 1}" ${(b ? b.period_month : (U.period.month != null ? U.period.month + 1 : null)) === i + 1 ? "selected" : ""}>${m}</option>`).join("")}</select></div></div>
           <div class="field"><label>Status</label><select class="input" id="b-st">${["draft", "aktif", "selesai"].map((s) => `<option ${(b?.status || "aktif") === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
           <div class="field"><label>Catatan</label><textarea class="input" id="b-nt">${U.esc(b?.notes || "")}</textarea></div><div id="b-err"></div>`,
         footer: `${!isNew ? `<button class="btn btn-danger" id="b-del" style="margin-right:auto">${I.trash} Hapus</button>` : ""}<button class="btn" data-x2>Batal</button><button class="btn btn-primary" id="b-save">Simpan</button>`,
@@ -124,6 +122,7 @@ PAGES.budget = {
       });
     }
 
+    U.wirePeriod(ctx.topActs, () => load().catch((e) => U.toast(e.message || "Gagal memuat data", true)));
     await load();
   },
 };

@@ -58,6 +58,53 @@ window.PAGES = window.PAGES || {}; // harus ada sebelum skrip halaman dimuat
     return [`${year}-${m}-01T00:00:00+07:00`, `${ny}-${nm}-01T00:00:00+07:00`];
   };
 
+  // ---------- Periode (tahun + bulan), diingat antar halaman ----------
+  U.monthFull = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  U.period = (() => {
+    let st = { year: new Date().getFullYear(), month: null }; // month: null = setahun penuh, 0-11 = bulan tertentu
+    try {
+      const j = JSON.parse(sessionStorage.getItem("msp_period") || "null");
+      if (j && Number.isInteger(j.year) && (j.month === null || (Number.isInteger(j.month) && j.month >= 0 && j.month <= 11))) st = j;
+    } catch (_) {}
+    return st;
+  })();
+  U.periodLabel = (p = U.period) => (p.month == null ? `Tahun ${p.year}` : `${U.monthFull[p.month]} ${p.year}`);
+  U.periodRange = (p = U.period) => U.range(p.year, p.month);
+  // HTML kontrol: [Bulan ini] [Bulan ▾] [Tahun ▾]
+  U.periodHTML = ({ futureYears = 0, allLabel = "Semua bulan" } = {}) => {
+    const now = new Date(), ys = [];
+    for (let y = now.getFullYear() + futureYears; y >= now.getFullYear() - 4; y--) ys.push(y);
+    if (!ys.includes(U.period.year)) { ys.push(U.period.year); ys.sort((a, b) => b - a); }
+    return `<span class="period-ctl"><button class="btn btn-sm hide-sm" data-pnow type="button">Bulan ini</button>
+      <select class="input" data-pm aria-label="Bulan"><option value="">${U.esc(allLabel)}</option>${U.monthFull.map((m, i) => `<option value="${i}">${m}</option>`).join("")}</select>
+      <select class="input" data-py aria-label="Tahun">${ys.map((y) => `<option>${y}</option>`).join("")}</select></span>`;
+  };
+  // Pasang perilaku; onChange dipanggil setiap periode berubah
+  U.wirePeriod = (root, onChange) => {
+    const pm = root.querySelector("[data-pm]"), py = root.querySelector("[data-py]"), now = root.querySelector("[data-pnow]");
+    const sync = () => { pm.value = U.period.month == null ? "" : String(U.period.month); py.value = String(U.period.year); };
+    const save = () => { try { sessionStorage.setItem("msp_period", JSON.stringify(U.period)); } catch (_) {} sync(); onChange(); };
+    pm.onchange = () => { U.period.month = pm.value === "" ? null : +pm.value; save(); };
+    py.onchange = () => { U.period.year = +py.value; save(); };
+    if (now) now.onclick = () => { const d = new Date(); U.period.year = d.getFullYear(); U.period.month = d.getMonth(); save(); };
+    sync();
+  };
+  // Titik grafik untuk periode aktif: 12 bulan (setahun) atau tiap hari (satu bulan)
+  U.seriesPoints = (rows, p = U.period) => {
+    const key = (b) => new Date(b).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+    const map = {}; (rows || []).forEach((r) => (map[key(r.bucket)] = r));
+    const extra = (r) => (r ? `${U.num(r.trx)} transaksi · ${U.num(r.donors)} donatur` : "Belum ada transaksi");
+    if (p.month == null) {
+      return U.monthName.map((m, i) => { const r = map[`${p.year}-${String(i + 1).padStart(2, "0")}-01`]; return { label: `${m} ${p.year}`, value: r ? +r.amount : 0, extra: extra(r) }; });
+    }
+    const days = new Date(p.year, p.month + 1, 0).getDate(), out = [];
+    for (let d = 1; d <= days; d++) {
+      const r = map[`${p.year}-${String(p.month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`];
+      out.push({ label: `${d} ${U.monthName[p.month]}`, value: r ? +r.amount : 0, extra: extra(r) });
+    }
+    return out;
+  };
+
   // ---------- Toast ----------
   U.toast = (msg, err = false) => {
     let box = document.querySelector(".toast-box");
@@ -153,7 +200,9 @@ window.PAGES = window.PAGES || {}; // harus ada sebelum skrip halaman dimuat
     const W = 1000, H = 320, L = 56, R = 16, T = 16, B = 46;
     const max = Math.max(...points.map((p) => p.value));
     const nice = (m) => { const e = Math.pow(10, Math.floor(Math.log10(m))); const f = m / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * e; };
-    const top = max > 0 ? nice(max) : 1_000_000; // data kosong: skala 0–1 jt agar sumbu wajar
+    // 4 sekat dengan langkah "bulat" (1; 1,5; 2; 2,5; 3; 4; 5; 6; 8; 10 x 10^n) agar angka sumbu rapi
+    const stepOf = (m) => { const raw = m / 4, e = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / e; return [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((x) => x >= f - 1e-9) * e; };
+    const top = max > 0 ? stepOf(max) * 4 : 1_000_000; // data kosong: skala 0–1 jt
     const x = (i) => L + (points.length === 1 ? (W - L - R) / 2 : (i * (W - L - R)) / (points.length - 1));
     const y = (v) => T + (H - T - B) * (1 - v / top);
     // kurva halus (Catmull-Rom -> Bezier)

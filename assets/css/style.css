@@ -244,3 +244,13 @@ td.r, th.r { text-align: right; }
   .content { padding: 18px 14px 60px; }
 }
 @media (max-width: 520px) { .g4 { grid-template-columns: 1fr; } .kpi .v { font-size: 24px; } }
+
+/* ---------- Kontrol periode (bulan + tahun) ---------- */
+.period-ctl { display: inline-flex; gap: 8px; align-items: center; }
+.period-ctl .input { height: 36px; width: auto; min-width: 0; }
+@media (max-width: 560px) {
+  .hide-sm { display: none !important; }
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar .title { display: none; }
+  .period-ctl .input { max-width: 118px; padding: 0 8px; }
+}
